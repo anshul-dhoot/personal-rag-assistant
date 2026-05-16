@@ -1,0 +1,17 @@
+# Environment
+.env
+
+# ChromaDB — rebuilt by ingest.py
+chroma_db/
+
+# Visitor logs — private
+logs/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS
+.DS_Store
