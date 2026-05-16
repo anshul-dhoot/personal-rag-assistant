@@ -9,14 +9,11 @@ openai==1.42.0
 sentence-transformers==3.0.1
  
 # Web UI
-streamlit==1.38.0
+streamlit==1.40.0
  
 # Utilities
 python-dotenv==1.0.1
 pydantic==2.8.2
  
 # Visitor logging
-pandas==2.2.3
- 
-# Explicit compatible versions for Streamlit Cloud
-pillow==11.2.1
+pandas
