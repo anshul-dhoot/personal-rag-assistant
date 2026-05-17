@@ -33,6 +33,9 @@ if "session_id" not in st.session_state:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+if "pending_question" not in st.session_state:
+    st.session_state.pending_question = None
+
 # ── Header ────────────────────────────────────────────────────────────────────
 st.title("💬 Chat with Anshul Dhoot")
 st.caption(
@@ -59,12 +62,16 @@ with st.expander("💡 Not sure where to start? Try one of these"):
     cols = st.columns(2)
     for i, suggestion in enumerate(suggestions):
         if cols[i % 2].button(suggestion, key=f"suggest_{i}"):
-            st.session_state.messages.append({"role": "user", "content": suggestion})
-            with st.spinner("Thinking..."):
-                answer = ask(suggestion)
-            st.session_state.messages.append({"role": "assistant", "content": answer})
-            log_interaction(st.session_state.session_id, suggestion, answer)
-            st.rerun()
+            st.session_state.pending_question = suggestion
+
+    if "pending_question" in st.session_state and st.session_state.pending_question:
+        question = st.session_state.pending_question
+        st.session_state.pending_question = None
+        st.session_state.messages.append({"role": "user", "content": question})
+        with st.spinner("Thinking..."):
+            answer = ask(question)
+        st.session_state.messages.append({"role": "assistant", "content": answer})
+        log_interaction(st.session_state.session_id, question, answer)
 
 # ── Chat history ──────────────────────────────────────────────────────────────
 for message in st.session_state.messages:

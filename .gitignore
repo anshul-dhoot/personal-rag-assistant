@@ -2,7 +2,7 @@
 .env
 
 # ChromaDB — rebuilt by ingest.py
-chroma_db/
+#chroma_db/
 
 # Visitor logs — private
 logs/
