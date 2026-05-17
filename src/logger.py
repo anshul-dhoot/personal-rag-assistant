@@ -20,7 +20,7 @@ def _ensure_log_file():
     """Create the log file with headers if it doesn't exist."""
     os.makedirs(os.path.dirname(VISITOR_LOG_PATH), exist_ok=True)
     if not os.path.exists(VISITOR_LOG_PATH):
-        with open(VISITOR_LOG_PATH, "w", newline="") as f:
+        with open(VISITOR_LOG_PATH, "w", newline="", encoding="utf-8") as f:
             writer = csv.DictWriter(f, fieldnames=FIELDNAMES)
             writer.writeheader()
 
@@ -39,6 +39,6 @@ def log_interaction(session_id: str, question: str, answer: str):
         "question": question.strip(),
         "answer_snippet": answer_snippet,
     }
-    with open(VISITOR_LOG_PATH, "a", newline="") as f:
+    with open(VISITOR_LOG_PATH, "a", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=FIELDNAMES)
         writer.writerow(row)
