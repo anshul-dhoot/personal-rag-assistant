@@ -86,8 +86,12 @@ def build_chain():
     return chain
 
 
-# Module-level chain — initialised once, reused across Streamlit reruns
-_chain = None
+# Pre-warm the chain at import time so first request doesn't fail
+try:
+    _chain = build_chain()
+except Exception as e:
+    _chain = None
+    print(f"Chain init failed: {e}")
 
 
 def get_chain():
