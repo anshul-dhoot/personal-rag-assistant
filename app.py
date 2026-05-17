@@ -1,30 +1,27 @@
 """
 app.py
 Streamlit chat interface for Anshul's Personal RAG Assistant.
-Recruiters can ask questions and get answers grounded in the KB.
-
-Run with:
-    streamlit run app.py
 """
 
+import os
 import streamlit as st
 from dotenv import load_dotenv
-import os
-
-from src.chat import ask
-from src.logger import generate_session_id, log_interaction
 
 load_dotenv()
 
 APP_TITLE = os.getenv("APP_TITLE", "Chat with Anshul")
 CALENDLY_URL = os.getenv("CALENDLY_URL", "https://calendly.com/your-link-here")
 
-# ── Page config ──────────────────────────────────────────────────────────────
+# ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title=APP_TITLE,
     page_icon="💬",
     layout="centered",
 )
+
+# ── Imports after page config ─────────────────────────────────────────────────
+from src.chat import ask
+from src.logger import generate_session_id, log_interaction
 
 # ── Session state init ────────────────────────────────────────────────────────
 if "session_id" not in st.session_state:
@@ -38,9 +35,7 @@ if "pending_question" not in st.session_state:
 
 # ── Header ────────────────────────────────────────────────────────────────────
 st.title("💬 Chat with Anshul Dhoot")
-st.caption(
-    "Engineering Manager · Data Platform · AI/GenAI · 17 Years · VP Deutsche Bank"
-)
+st.caption("Engineering Manager · Data Platform · AI/GenAI · 17 Years · VP Deutsche Bank")
 st.markdown(
     "Ask me anything — experience, skills, location, availability, what I'm looking for. "
     "No screening call needed to get started."
@@ -48,30 +43,32 @@ st.markdown(
 st.divider()
 
 # ── Suggested questions ───────────────────────────────────────────────────────
+suggestions = [
+    "Tell me about yourself",
+    "What are your core technical skills?",
+    "How many years of experience do you have?",
+    "Are you open to relocating?",
+    "What is your notice period?",
+    "Are you open to IC roles or only EM?",
+    "Why are you planning to move?",
+    "What does your typical week look like?",
+]
+
 with st.expander("💡 Not sure where to start? Try one of these"):
-    suggestions = [
-        "Tell me about yourself",
-        "What are your core technical skills?",
-        "How many years of experience do you have?",
-        "Are you open to relocating?",
-        "What is your notice period?",
-        "Are you open to IC roles or only EM?",
-        "Why are you planning to move?",
-        "What does your typical week look like?",
-    ]
     cols = st.columns(2)
     for i, suggestion in enumerate(suggestions):
         if cols[i % 2].button(suggestion, key=f"suggest_{i}"):
             st.session_state.pending_question = suggestion
 
-    if "pending_question" in st.session_state and st.session_state.pending_question:
-        question = st.session_state.pending_question
-        st.session_state.pending_question = None
-        st.session_state.messages.append({"role": "user", "content": question})
-        with st.spinner("Thinking..."):
-            answer = ask(question)
-        st.session_state.messages.append({"role": "assistant", "content": answer})
-        log_interaction(st.session_state.session_id, question, answer)
+# ── Process pending question from suggestion buttons ──────────────────────────
+if st.session_state.pending_question:
+    question = st.session_state.pending_question
+    st.session_state.pending_question = None
+    st.session_state.messages.append({"role": "user", "content": question})
+    with st.spinner("Thinking..."):
+        answer = ask(question)
+    st.session_state.messages.append({"role": "assistant", "content": answer})
+    log_interaction(st.session_state.session_id, question, answer)
 
 # ── Chat history ──────────────────────────────────────────────────────────────
 for message in st.session_state.messages:
@@ -83,18 +80,13 @@ if prompt := st.chat_input("Ask a question about Anshul..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
-
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
             answer = ask(prompt)
         st.markdown(answer)
-
     st.session_state.messages.append({"role": "assistant", "content": answer})
     log_interaction(st.session_state.session_id, prompt, answer)
 
 # ── Footer ────────────────────────────────────────────────────────────────────
 st.divider()
-st.markdown(
-    f"📅 Ready to connect? [Schedule a call with Anshul]({CALENDLY_URL})",
-    unsafe_allow_html=False,
-)
+st.markdown(f"📅 Ready to connect? [Schedule a call with Anshul]({CALENDLY_URL})")
