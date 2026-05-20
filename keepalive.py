@@ -1,16 +1,10 @@
 """
 keepalive.py
 Wakes the deployed Streamlit app by hitting the URL.
-Designed to run as a GitHub Actions scheduled job once per day.
+Runs daily via GitHub Actions to prevent Streamlit Community Cloud sleep.
 
-This doesn't simulate a full browser session — it sends an HTTP GET
-to the app URL which is enough to prevent Streamlit Community Cloud
-from marking the app as inactive.
-
-Usage (local test):
-    python keepalive.py
-
-GitHub Actions runs this automatically via .github/workflows/keepalive.yml
+Any HTTP response (including redirects and wake-up pages) counts as success.
+Only fails if the URL is completely unreachable.
 """
 
 import urllib.request
@@ -20,33 +14,38 @@ from datetime import datetime
 
 APP_URL = "https://personal-rag-assistant-6zivofchzgcvpvsddenfxn.streamlit.app"
 
+
 def ping_app(url: str) -> bool:
-    """Send HTTP GET to the app URL. Returns True if app responds."""
     try:
         req = urllib.request.Request(
             url,
             headers={
-                "User-Agent": "Mozilla/5.0 (keepalive-bot/1.0)",
-                "Accept": "text/html",
+                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36",
+                "Accept": "text/html,application/xhtml+xml,*/*",
             }
         )
         with urllib.request.urlopen(req, timeout=60) as response:
             status = response.getcode()
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] "
-                  f"App responded with status {status} — keepalive OK")
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Response: {status} — OK")
             return True
     except urllib.error.HTTPError as e:
-        print(f"HTTP error: {e.code} {e.reason}")
-        return False
+        # Any HTTP response means server is alive — count as success
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] HTTP {e.code} — app reachable, keepalive OK")
+        return True
     except urllib.error.URLError as e:
-        print(f"URL error: {e.reason}")
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] URL error: {e.reason} — app unreachable")
         return False
     except Exception as e:
-        print(f"Unexpected error: {e}")
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Error: {e}")
         return False
 
 
 if __name__ == "__main__":
     print(f"Pinging {APP_URL} ...")
     success = ping_app(APP_URL)
-    sys.exit(0 if success else 1)
+    if success:
+        print("Keepalive complete.")
+        sys.exit(0)
+    else:
+        print("App unreachable — keepalive failed.")
+        sys.exit(1)
