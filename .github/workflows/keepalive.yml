@@ -2,8 +2,8 @@ name: Keepalive — Wake Streamlit App
 
 on:
   schedule:
-    # Runs every day at 8:00 AM IST (2:30 AM UTC)
-    - cron: '30 2 * * *'
+    # runs at midnight, 6 AM, noon, and 6 PM UTC — 4 times a day
+    - cron: '0 */6 * * *'
   workflow_dispatch:
     # Also allows manual trigger from GitHub Actions tab
 
